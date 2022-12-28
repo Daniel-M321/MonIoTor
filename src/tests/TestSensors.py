@@ -1,0 +1,35 @@
+import unittest
+
+from unittest.mock import patch
+from src.sensors import check_float_switch, check_smoke_level
+
+
+class FakeDevice:
+    def __init__(self, number: int):
+        self.number = number
+
+    def is_active(self) -> bool:
+        if self.number == 4:
+            return True
+        else:
+            return False
+
+
+class TestSensors(unittest.TestCase):
+
+    @patch("src.sensors.DigitalInputDevice", return_value=FakeDevice(number=4))
+    def test_float_switch_flood(self, device_mock):
+        self.assertEqual(check_float_switch(), "There is flood")
+
+    @patch("src.sensors.DigitalInputDevice", return_value=FakeDevice(number=5))
+    def test_float_switch_noflood(self, device_mock):
+        self.assertEqual(check_float_switch(), "There is no flood")
+
+    def test_float_switch_inactive(self):
+        self.assertEqual(check_float_switch(), "no float switch")
+
+    def test_smoke_level_ok(self):
+        self.assertEqual(check_smoke_level(100), 1)
+
+    def test_smoke_level_bad(self):
+        self.assertEqual(check_smoke_level(500), 0)
