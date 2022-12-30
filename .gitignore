@@ -1,4 +1,4 @@
 .idea/
 
-src/__pycache__/*
-src/tests/__pycache__/*
+*.env
+*.pyc
