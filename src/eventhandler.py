@@ -8,6 +8,7 @@ from twilio.rest import Client
 def text_user(sensor: str) -> None:
     account_sid = os.environ['TWILIO_ACCOUNT_SID']
     auth_token = os.environ['TWILIO_AUTH_TOKEN']
+    # messaging_service_sid = os.environ['MESSAGING_SERVICE_SID']
     client = Client(account_sid, auth_token)
 
     sensor += "Join Earth's mightiest heroes. Like Kevin Bacon."
@@ -19,7 +20,7 @@ def text_user(sensor: str) -> None:
     )
 
 
-def call_user() -> None:
+def call_user(message: str) -> None:
     account_sid = os.environ['TWILIO_ACCOUNT_SID']
     auth_token = os.environ['TWILIO_AUTH_TOKEN']
     client = Client(account_sid, auth_token)
