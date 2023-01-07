@@ -1,8 +1,7 @@
 import time
 from datetime import datetime
+from sensors import MySensors
 
-from sensors import check_float_switch, read_adc, humidity_and_temp, motion_sensor
-from sensors import check_smoke_level
 import psutil
 
 
@@ -18,17 +17,18 @@ def main():
     for proc in psutil.process_iter():
         if proc.name() == 'libgpiod_pulsein' or proc.name() == 'libgpiod_pulsei':
             proc.kill()
+
+    my_sensors = MySensors()
     while True:
-        #fs = check_float_switch()
-        #float_switch_data(fs)
+        #fs = my_sensors.check_float_switch()
         time.sleep(1.5)
-        humidity_and_temp()
-        if motion_sensor() == 1:
+        my_sensors.humidity_and_temp()
+        if my_sensors.motion_sensor() == 1:
             print("motion detected")
-        elif motion_sensor() == 0:
+        elif my_sensors.motion_sensor() == 0:
             print("no motion")
         time.sleep(0.5)
-        check_smoke_level(read_adc(0))
+        my_sensors.check_smoke_level(my_sensors.read_adc(0))
         time.sleep(5)
 
 
