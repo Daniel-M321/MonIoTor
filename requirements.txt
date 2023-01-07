@@ -1,4 +1,6 @@
 gpiozero==1.6.2
 twilio==7.16.0
-pigpio-dht==0.3.6
 python-dotenv==0.21.0
+adafruit-circuitpython-dht==3.7.8
+
+psutil~=5.9.4
