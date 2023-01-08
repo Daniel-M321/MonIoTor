@@ -55,7 +55,8 @@ class TestSensors(unittest.TestCase):
     def test_smoke_level_ok(self):
         self.assertEqual(self.my_sensors.check_smoke_level(100), 1)
 
-    def test_smoke_level_bad(self):
+    @patch("src.sensors.call_user", return_value=None)
+    def test_smoke_level_bad(self, call_mock):
         self.assertEqual(self.my_sensors.check_smoke_level(500), 0)
 
     # motion sensor tests ########

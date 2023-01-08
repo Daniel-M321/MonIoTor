@@ -5,6 +5,7 @@ import adafruit_dht
 import board
 
 # in main method sleep for seconds, but store in database in minutes
+from src.eventhandler import call_user
 
 
 class MySensors:
@@ -43,8 +44,8 @@ class MySensors:
 
         if smoke_trigger > 1.5:
             print("Gas leakage")
-            # call user
             print("Current Gas AD value = " + str("%.2f" % ((co_level / 1024.) * 3.3)) + " V")
+            call_user("Abnormal smoke levels detected. There may be a gas leak")
             return 0
 
         else:
