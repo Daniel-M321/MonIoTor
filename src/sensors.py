@@ -1,6 +1,6 @@
 import time
 
-from gpiozero import DigitalInputDevice, BadPinFactory, MotionSensor, MCP3008
+from gpiozero import DigitalInputDevice, MotionSensor, MCP3008
 import adafruit_dht
 import board
 
@@ -8,13 +8,20 @@ import board
 
 
 class MySensors:
+    motion_counter: int
+    alarm: bool
+    user_called: bool
+
     def __init__(self):
         try:
-            # self.float_switch = DigitalInputDevice(2)
+            self.float_switch = DigitalInputDevice(2)
             self.pir = MotionSensor(4, queue_len=10, sample_rate=20, threshold=0.7)
             self.dht_sensor = adafruit_dht.DHT11(board.D27, use_pulseio=False)
         except Exception as e:
             print("Issue with initiliasing a sensor: ", e.args)
+        self.motion_counter = 0
+        self.alarm = False
+        self.user_called = False
 
     # read SPI data from MCP3008 chip,8 possible adc's (0 through 7)
     def read_adc(self, adcnum: int) -> float:
@@ -25,11 +32,11 @@ class MySensors:
 
         return sensor.value
 
-    # def check_float_switch(self) -> str:
-    #     if self.float_switch.is_active:
-    #         return "There is flood"
-    #     else:
-    #         return "There is no flood"
+    def check_float_switch(self) -> str:
+        if self.float_switch.is_active:
+            return "There is flood"
+        else:
+            return "There is no flood"
 
     def check_smoke_level(self, co_level: float) -> int:
         smoke_trigger = ((co_level / 1024.) * 3.3)
