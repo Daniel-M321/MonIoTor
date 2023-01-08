@@ -58,24 +58,24 @@ class MySensors:
         else:
             return 0
 
-    def humidity_and_temp(self) -> float:
-        hum = None
-        retries = 15
-        error = None
+    def humidity_and_temp(self, retries=15) -> float:
+        humid = None
+        error = "DHT failure: Unexpected error, humidity & temperature have no values, check sensor"
 
-        while retries >= 1 and hum is None:
+        while retries >= 1 and humid is None:
             try:
-                hum = self.dht_sensor.humidity
+                humid = self.dht_sensor.humidity
                 temp = self.dht_sensor.temperature
 
-                if hum is not None:
-                    print('Temp=' + str(temp) + '*C \tHumidity=' + str(hum) + '%')
+                if humid is not None:
+                    print('Temp: {0:0.1f} C  \tHumidity: {1:0.1f} %'.format(temp, humid))
             except RuntimeError as e:
                 error = "DHT failure: ", e.args
             time.sleep(1)
             retries -= 1
 
-        if hum is None and error:
+        if humid is None:
             print(error)
+            return 0
 
         return 1
