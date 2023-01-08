@@ -12,24 +12,40 @@ class FakeDevice:
         self.value = 1
         self.motion_detected = True
 
-    def inactivity(self):
+    def inactivity(self) -> None:
         self.is_active = False
         self.value = 0
         self.motion_detected = False
 
 
 class FakeDHT:
+    temperature: float
+
     def __init__(self, pin: int):
         self.pin = pin
+        self.humidity = 50
+        self.temperature = 20
+        self.counter = 0
+
+    # def inactive(self) -> None:
+    #     self.humidity = None
+    #     self.temperature = 0
+
+
+class FakeBoard:
+    def __init__(self):
+        self.D27 = 4
 
 
 class TestSensors(unittest.TestCase):
     fakeDevice = FakeDevice(4)
+    fakeDht = FakeDHT(4)
 
     @patch("src.sensors.MotionSensor", return_value=fakeDevice)
     @patch("src.sensors.DigitalInputDevice", return_value=fakeDevice)
-    @patch("src.sensors.adafruit_dht.DHT11", return_value=FakeDHT(pin=4))
-    def setUp(self, dht_mock, device_mock, pir_mock):
+    @patch("src.sensors.adafruit_dht.DHT11", return_value=fakeDht)
+    @patch("src.sensors.board", return_value=FakeBoard())
+    def setUp(self, board_mock, dht_mock, device_mock, pir_mock):
         self.my_sensors = MySensors()
 
     # fixme takes a while and accesses some internal files
@@ -60,3 +76,12 @@ class TestSensors(unittest.TestCase):
     def test_motion_sensor_inactive(self):
         self.fakeDevice.inactivity()
         self.assertEqual(self.my_sensors.motion_sensor(), 0)
+
+    # dht sensor tests ###########
+    def test_dht_ok(self):
+        self.assertEqual(self.my_sensors.humidity_and_temp(), 1)
+
+    # def test_dht_failure(self):
+    #     #self.fakeDht.inactive()
+    #     with self.assertRaises(RuntimeError) as context:
+    #         self.my_sensors.humidity_and_temp(retries=1)
