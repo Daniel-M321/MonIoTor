@@ -9,7 +9,7 @@ class FakeDevice:
     def __init__(self, number: int):
         self.number = number
         self.is_active = True
-        self.value = 1
+        self.value = 0.9
         self.motion_detected = True
 
     def inactivity(self) -> None:
@@ -85,3 +85,11 @@ class TestSensors(unittest.TestCase):
     #     #self.fakeDht.inactive()
     #     with self.assertRaises(RuntimeError) as context:
     #         self.my_sensors.humidity_and_temp(retries=1)
+
+    # adc tests ##################
+    @patch("src.sensors.MCP3008", return_value=FakeDevice(0))
+    def test_adc(self, adc_mock):
+        self.assertEqual(self.my_sensors.read_adc(0), 0.9)
+
+    def test_adc_incorrect_pin(self):
+        self.assertEqual(self.my_sensors.read_adc(9), -1)

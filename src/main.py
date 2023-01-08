@@ -4,11 +4,10 @@ from sensors import MySensors
 
 import psutil
 
-
-# function to create line protocol needed to store in db
 from src.eventhandler import call_user
 
 
+# function to create line protocol needed to store in db
 def create_line_protocol(sensor: str, reading: str, value):
     line: str = "{} {}={} {}"
     timestamp = str(int(datetime.now().timestamp() * 1000))
