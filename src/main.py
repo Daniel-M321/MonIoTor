@@ -1,40 +1,43 @@
 import time
 from datetime import datetime
+from sensors import MySensors
 
-from gpiozero import MCP3008
+import psutil
 
-from sensors import check_float_switch
-from sensors import check_smoke_level
+from src.eventhandler import call_user
 
 
 # function to create line protocol needed to store in db
-
 def create_line_protocol(sensor: str, reading: str, value):
     line: str = "{} {}={} {}"
     timestamp = str(int(datetime.now().timestamp() * 1000))
     return line.format(sensor, reading, value, timestamp)
 
 
-# read SPI data from MCP3008 chip,8 possible adc's (0 through 7)
-
-def read_adc(adcnum):
-    if (adcnum > 7) or (adcnum < 0):
-        return -1
-
-    #sensor_value = MCP3008(channel=adcnum, clock_pin=11, mosi_pin=10, miso_pin=9, select_pin=8)
-    sensor_value = 100
-
-    return sensor_value
-
-
 # main loop
 def main():
+    for proc in psutil.process_iter():
+        if proc.name() == 'libgpiod_pulsein' or proc.name() == 'libgpiod_pulsei':
+            proc.kill()
+
+    my_sensors = MySensors()
     while True:
-        fs = check_float_switch()
-        #float_switch_data(fs)
-        time.sleep(0.1)
-        check_smoke_level(read_adc(0))
+        #fs = my_sensors.check_float_switch()
+        time.sleep(1.5)
+        my_sensors.humidity_and_temp()
+
+        if my_sensors.motion_sensor() == 1 and my_sensors.alarm:
+            print("motion detected")
+            my_sensors.motion_counter += 1
+            if my_sensors.motion_counter == 3 and not my_sensors.user_called:
+                my_sensors.motion_counter = 0  # fixme need to reset after user has been called
+                call_user("Motion detected in your house")
+        elif my_sensors.motion_sensor() == 0:
+            print("no motion")
         time.sleep(0.5)
+
+        my_sensors.check_smoke_level(my_sensors.read_adc(0))
+        time.sleep(5)
 
 
 # ---------------------------------------------------------
