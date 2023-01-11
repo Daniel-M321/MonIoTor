@@ -35,6 +35,8 @@ class MySensors:
 
     def check_float_switch(self) -> str:
         if self.float_switch.is_active:
+            # call_user("Water has been detected in your house.")
+            # db
             return "There is flood"
         else:
             return "There is no flood"
@@ -70,6 +72,9 @@ class MySensors:
 
                 if humid is not None:
                     print('Temp: {0:0.1f} C  \tHumidity: {1:0.1f} %'.format(temp, humid))
+                    if temp > 40:
+                        print("abnormal temperature detected in your home: " + str(temp))
+                        # text_user("abnormal temperature detected in your home: "+str(temp))
             except RuntimeError as e:
                 error = "DHT failure: ", e.args
             time.sleep(1)
