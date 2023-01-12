@@ -1,6 +1,7 @@
 import time
 from datetime import datetime
 from sensors import MySensors       # type: ignore
+from src.mq2 import MQ              # type: ignore
 
 import psutil
 
@@ -20,7 +21,9 @@ def main():
         if proc.name() == 'libgpiod_pulsein' or proc.name() == 'libgpiod_pulsei':
             proc.kill()
 
+    print("Performing calibration on sensors, this may take a while...")
     my_sensors = MySensors()
+    mq = MQ()
     # todo run calibration stuff?
     while True:
         #fs = my_sensors.check_float_switch()
@@ -40,7 +43,21 @@ def main():
             my_sensors.user_called = False
         time.sleep(0.5)
 
-        my_sensors.check_smoke_level(my_sensors.read_adc(0))
+        # my_sensors.check_smoke_level(my_sensors.read_adc(0))
+        gas_percents = mq.MQPercentage()
+        lpg_val = gas_percents["GAS_LPG"]
+        co_val = gas_percents["CO"]
+        smoke_val = gas_percents["SMOKE"]
+        print("LPG: {lpg} ppm, CO: {co} ppm, Smoke: {smoke} ppm".format(lpg=lpg_val, co=co_val, smoke=smoke_val))
+        if lpg_val > 1.5:
+            print("LPG values exceeded nominal values")
+            call_user("High L.P.G. values detected")
+        if co_val > 1.5:
+            print("CO values exceeded nominal values")
+            call_user("High Carbon dioxide values detected")
+        if smoke_val > 1.5:
+            print("smoke level exceeded nominal values")
+            call_user("High smoke values detected")
         time.sleep(5)
 
 

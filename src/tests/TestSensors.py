@@ -1,6 +1,8 @@
 import unittest
 
 from unittest.mock import patch
+
+from src.mq2 import MQ
 from src.sensors import MySensors
 
 
@@ -24,6 +26,9 @@ class FakeDevice:
         self.is_active = True
         self.value = 0.9
         self.motion_detected = True
+
+    def read(self, pin: int) -> float:
+        return 50
 
 
 class TestSensors(unittest.TestCase):
@@ -58,6 +63,14 @@ class TestSensors(unittest.TestCase):
     @patch("src.sensors.call_user", return_value=None)
     def test_smoke_level_bad(self, call_mock):
         self.assertEqual(self.my_sensors.check_smoke_level(500), 0)
+
+    @patch("src.mq2.MCP3008", return_value=fakeDevice)
+    def test_mq(self, mcp_mock):
+        mq = MQ(READ_SAMPLE_INTERVAL=5, CALIBRATION_SAMPLE_INTERVAL=5)
+        self.assertEqual(
+            mq.MQPercentage(),
+            {'CO': 0.004963269307602389,'GAS_LPG': 0.007659007247994245,'SMOKE': 0.02043459613031669}
+        )
 
     # motion sensor tests ########
     def test_motion_sensor_motion(self):
