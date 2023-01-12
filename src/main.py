@@ -22,7 +22,7 @@ def main():
             proc.kill()
 
     print("Performing calibration on sensors, this may take a while...")
-    my_sensors = MySensors()
+    my_sensors = MySensors(calibrate=True)
     mq = MQ()
     while True:
         #fs = my_sensors.check_float_switch()
