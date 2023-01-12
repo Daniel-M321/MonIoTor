@@ -13,7 +13,7 @@ class MySensors:
     alarm: bool
     user_called: bool
 
-    def __init__(self):
+    def __init__(self, calibrate: bool = False):
         try:
             self.float_switch = DigitalInputDevice(2)
             self.pir = MotionSensor(4, queue_len=10, sample_rate=20, threshold=0.7)
@@ -24,8 +24,9 @@ class MySensors:
         self.alarm = False
         self.user_called = False
 
-        self.dht_calibration()
-        self.pir_calibration()
+        if calibrate:
+            self.dht_calibration()
+            self.pir_calibration()
 
     # read SPI data from MCP3008 chip,8 possible adc's (0 through 7)
     def read_adc(self, adcnum: int) -> float:
@@ -100,8 +101,7 @@ class MySensors:
         print("Calibrating DHT11 Temperature and Humidity sensor...")
         for i in range(0, 29):
             try:
-                self.dht_sensor.humidity()
-                self.dht_sensor.temperature()
+                self.dht_sensor.measure()
             except RuntimeError:
                 error += 1
             time.sleep(1)
