@@ -1,6 +1,6 @@
 import time
 from datetime import datetime
-from sensors import MySensors
+from sensors import MySensors       # type: ignore
 
 import psutil
 

@@ -26,10 +26,12 @@ class FakeClient:
 
 class TestTwilio(unittest.TestCase):
 
+    @patch("src.eventhandler.os.environ", return_value={"test": "test"})
     @patch("src.eventhandler.Client", return_value=FakeClient(username="user", password="pass"))
-    def test_text_user(self, client_mock):
+    def test_text_user(self, client_mock, os_mock):
         self.assertIsNone(text_user("Hi there, "))
 
+    @patch("src.eventhandler.os.environ", return_value={"test": "test"})
     @patch("src.eventhandler.Client", return_value=FakeClient(username="user", password="pass"))
-    def test_call_user(self, client_mock):
+    def test_call_user(self, client_mock, os_mock):
         self.assertIsNone(call_user(""))
