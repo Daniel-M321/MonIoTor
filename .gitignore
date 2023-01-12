@@ -1,6 +1,7 @@
 .idea/
 venv/
-updatemystuff.bat
+.coverage
+coverage.xml
 
 *.env
 *.pyc
