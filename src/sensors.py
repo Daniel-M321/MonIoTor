@@ -24,6 +24,9 @@ class MySensors:
         self.alarm = False
         self.user_called = False
 
+        self.dht_calibration()
+        self.pir_calibration()
+
     # read SPI data from MCP3008 chip,8 possible adc's (0 through 7)
     def read_adc(self, adcnum: int) -> float:
         if (adcnum > 7) or (adcnum < 0):
@@ -85,3 +88,23 @@ class MySensors:
             return 0
 
         return 1
+
+    def pir_calibration(self) -> None:
+        print("Calibrating PIR motion sensor...")
+        for i in range(0, 29):
+            self.pir.value()
+        print("PIR motion sensor Calibration complete.\n")
+
+    def dht_calibration(self) -> None:
+        error = 0
+        print("Calibrating DHT11 Temperature and Humidity sensor...")
+        for i in range(0, 29):
+            try:
+                self.dht_sensor.humidity()
+                self.dht_sensor.temperature()
+            except RuntimeError:
+                error += 1
+            time.sleep(1)
+
+        error_rate = (error/30)*100
+        print("DHT11 Calibration complete. Error rate: {rate}".format(rate=error_rate)+"\n")
