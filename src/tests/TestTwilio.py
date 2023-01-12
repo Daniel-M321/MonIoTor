@@ -1,8 +1,6 @@
 import unittest
 from unittest.mock import patch
 
-from dotenv import load_dotenv
-
 from src.eventhandler import text_user, call_user
 
 
