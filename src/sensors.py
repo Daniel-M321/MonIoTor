@@ -1,8 +1,8 @@
 import time
 
-from gpiozero import DigitalInputDevice, MotionSensor, MCP3008
-import adafruit_dht
-import board
+from gpiozero import DigitalInputDevice, MotionSensor, MCP3008  # type: ignore
+import adafruit_dht                                             # type: ignore
+import board                                                    # type: ignore
 
 # in main method sleep for seconds, but store in database in minutes
 from src.eventhandler import call_user
@@ -71,7 +71,7 @@ class MySensors:
                 if humid is not None:
                     print('Temp: {0:0.1f} C  \tHumidity: {1:0.1f} %'.format(temp, humid))
             except RuntimeError as e:
-                error = "DHT failure: ", e.args
+                error = "DHT failure: " + str(e.args)
             time.sleep(1)
             retries -= 1
 
