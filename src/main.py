@@ -24,7 +24,6 @@ def main():
     print("Performing calibration on sensors, this may take a while...")
     my_sensors = MySensors()
     mq = MQ()
-    # todo run calibration stuff?
     while True:
         #fs = my_sensors.check_float_switch()
         time.sleep(1.5)
