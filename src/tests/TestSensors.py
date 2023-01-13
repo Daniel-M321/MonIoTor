@@ -2,6 +2,8 @@ import unittest
 
 from unittest.mock import patch
 
+from gpiozero import BadPinFactory
+
 from src.mq2 import MQ
 from src.sensors import MySensors
 
@@ -41,11 +43,15 @@ class TestSensors(unittest.TestCase):
     def setUp(self, board_mock, dht_mock, device_mock, pir_mock):
         self.my_sensors = MySensors()
 
-    # fixme takes a while and accesses some internal files
-    # @patch("src.sensors.MotionSensor", return_value=fakeDevice)
-    # @patch("src.sensors.adafruit_dht.DHT11", return_value=FakeDHT(pin=4))
-    # def test_no_sensors(self, dht_mock, pir_mock):
-    #     self.assertRaises(Exception, MySensors())
+    @patch("src.sensors.MotionSensor", return_value=fakeDevice)
+    @patch("src.sensors.DigitalInputDevice", return_value=fakeDevice)
+    def test_sensor_error(self, dht_mock, pir_mock):
+        with self.assertRaises(RuntimeError) as context:
+            MySensors()
+        self.assertEqual(
+            context.exception.args,
+            ('Issue with initiliasing a sensor: ', ("module 'board' has no attribute 'D27'",))
+        )
 
     # float switch tests #########
     def test_float_switch_flood(self):
@@ -69,7 +75,7 @@ class TestSensors(unittest.TestCase):
         mq = MQ(READ_SAMPLE_INTERVAL=5, CALIBRATION_SAMPLE_INTERVAL=5)
         self.assertEqual(
             mq.MQPercentage(),
-            {'CO': 0.004963269307602389,'GAS_LPG': 0.007659007247994245,'SMOKE': 0.02043459613031669}
+            {'CO': 0.004963269307602389, 'GAS_LPG': 0.007659007247994245, 'SMOKE': 0.02043459613031669}
         )
 
     # motion sensor tests ########

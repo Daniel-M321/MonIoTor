@@ -19,7 +19,7 @@ class MySensors:
             self.pir = MotionSensor(4, queue_len=10, sample_rate=20, threshold=0.7)
             self.dht_sensor = adafruit_dht.DHT11(board.D27, use_pulseio=False)
         except Exception as e:
-            print("Issue with initiliasing a sensor: ", e.args)
+            raise RuntimeError("Issue with initiliasing a sensor: ", e.args)
         self.motion_counter = 0
         self.alarm = False
         self.user_called = False
