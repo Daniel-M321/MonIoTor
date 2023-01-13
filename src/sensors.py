@@ -5,7 +5,7 @@ import adafruit_dht                                             # type: ignore
 import board                                                    # type: ignore
 
 # in main method sleep for seconds, but store in database in minutes
-from src.eventhandler import call_user
+from src.eventhandler import text_user
 
 
 class MySensors:
@@ -13,44 +13,28 @@ class MySensors:
     alarm: bool
     user_called: bool
 
-    def __init__(self):
+    def __init__(self, calibrate: bool = False, calibration_times: int = 30):
         try:
             self.float_switch = DigitalInputDevice(2)
             self.pir = MotionSensor(4, queue_len=10, sample_rate=20, threshold=0.7)
             self.dht_sensor = adafruit_dht.DHT11(board.D27, use_pulseio=False)
         except Exception as e:
-            print("Issue with initiliasing a sensor: ", e.args)
+            raise RuntimeError("Issue with initiliasing a sensor: ", e.args)
         self.motion_counter = 0
         self.alarm = False
         self.user_called = False
 
-    # read SPI data from MCP3008 chip,8 possible adc's (0 through 7)
-    def read_adc(self, adcnum: int) -> float:
-        if (adcnum > 7) or (adcnum < 0):
-            return -1
-
-        sensor = MCP3008(channel=adcnum, clock_pin=18, mosi_pin=15, miso_pin=17, select_pin=14)
-
-        return sensor.value
+        if calibrate:
+            self.dht_calibration(retries=calibration_times)
+            self.pir_calibration(retries=calibration_times)
 
     def check_float_switch(self) -> str:
         if self.float_switch.is_active:
+            # call_user("Water has been detected in your house.")
+            # db
             return "There is flood"
         else:
             return "There is no flood"
-
-    def check_smoke_level(self, co_level: float) -> int:
-        smoke_trigger = ((co_level / 1024.) * 3.3)
-
-        if smoke_trigger > 1.5:
-            print("Gas leakage")
-            print("Current Gas AD value = " + str("%.2f" % ((co_level / 1024.) * 3.3)) + " V")
-            call_user("Abnormal smoke levels detected. There may be a gas leak")
-            return 0
-
-        else:
-            print("Gas not leak: " + str(co_level))
-            return 1
 
     def motion_sensor(self) -> int:
         print(self.pir.value)
@@ -63,20 +47,42 @@ class MySensors:
         humid = None
         error = "DHT failure: Unexpected error, humidity & temperature have no values, check sensor"
 
-        while retries >= 1 and humid is None:
+        while retries >= 1 and not humid:
             try:
                 humid = self.dht_sensor.humidity
                 temp = self.dht_sensor.temperature
 
-                if humid is not None:
+                if humid:
                     print('Temp: {0:0.1f} C  \tHumidity: {1:0.1f} %'.format(temp, humid))
+                    if temp > 40:
+                        print("abnormal temperature detected in your home: " + str(temp) + " C")
+                        text_user("abnormal temperature detected in your home: "+str(temp) + " C")
             except RuntimeError as e:
                 error = "DHT failure: " + str(e.args)
             time.sleep(1)
             retries -= 1
 
-        if humid is None:
+        if not humid:
             print(error)
             return 0
 
         return 1
+
+    def pir_calibration(self, retries: int = 30) -> None:
+        print("Calibrating PIR motion sensor...")
+        for i in range(1, retries):
+            print("PIR VALUE:" + str(self.pir.value))
+        print("PIR motion sensor Calibration complete.\n")
+
+    def dht_calibration(self, retries: int) -> None:
+        error = 0
+        print("Calibrating DHT11 Temperature and Humidity sensor...")
+        for i in range(1, retries):
+            try:
+                self.dht_sensor.measure()
+            except RuntimeError:
+                error += 1
+            time.sleep(1)
+
+        error_rate = (error/30)*100
+        print("DHT11 Calibration complete. Error rate: {rate}".format(rate=error_rate)+"\n")
