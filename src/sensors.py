@@ -5,7 +5,7 @@ import adafruit_dht                                             # type: ignore
 import board                                                    # type: ignore
 
 # in main method sleep for seconds, but store in database in minutes
-from src.eventhandler import call_user
+from src.eventhandler import call_user, text_user
 
 
 class MySensors:
@@ -13,7 +13,7 @@ class MySensors:
     alarm: bool
     user_called: bool
 
-    def __init__(self, calibrate: bool = False):
+    def __init__(self, calibrate: bool = False, calibration_times: int = 30):
         try:
             self.float_switch = DigitalInputDevice(2)
             self.pir = MotionSensor(4, queue_len=10, sample_rate=20, threshold=0.7)
@@ -25,8 +25,8 @@ class MySensors:
         self.user_called = False
 
         if calibrate:
-            self.dht_calibration()
-            self.pir_calibration()
+            self.dht_calibration(retries=calibration_times)
+            self.pir_calibration(retries=calibration_times)
 
     # read SPI data from MCP3008 chip,8 possible adc's (0 through 7)
     def read_adc(self, adcnum: int) -> float:
@@ -77,8 +77,8 @@ class MySensors:
                 if humid is not None:
                     print('Temp: {0:0.1f} C  \tHumidity: {1:0.1f} %'.format(temp, humid))
                     if temp > 40:
-                        print("abnormal temperature detected in your home: " + str(temp))
-                        # text_user("abnormal temperature detected in your home: "+str(temp))
+                        print("abnormal temperature detected in your home: " + str(temp) + " C")
+                        text_user("abnormal temperature detected in your home: "+str(temp) + " C")
             except RuntimeError as e:
                 error = "DHT failure: " + str(e.args)
             time.sleep(1)
@@ -90,16 +90,16 @@ class MySensors:
 
         return 1
 
-    def pir_calibration(self) -> None:
+    def pir_calibration(self, retries: int = 30) -> None:
         print("Calibrating PIR motion sensor...")
-        for i in range(0, 29):
-            self.pir.value()
+        for i in range(1, retries):
+            print("PIR VALUE:" + str(self.pir.value))
         print("PIR motion sensor Calibration complete.\n")
 
-    def dht_calibration(self) -> None:
+    def dht_calibration(self, retries: int) -> None:
         error = 0
         print("Calibrating DHT11 Temperature and Humidity sensor...")
-        for i in range(0, 29):
+        for i in range(1, retries):
             try:
                 self.dht_sensor.measure()
             except RuntimeError:

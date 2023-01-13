@@ -75,24 +75,6 @@ class MQ:
 
         return val
 
-    def MQPercentage(self):
-        val = {}
-        read_val = self.MQRead(self.MQ_PIN)
-        val["GAS_LPG"] = self.MQGetGasPercentage(read_val/self.Ro, self.GAS_LPG)
-        val["CO"] = self.MQGetGasPercentage(read_val/self.Ro, self.GAS_CO)
-        val["SMOKE"] = self.MQGetGasPercentage(read_val/self.Ro, self.GAS_SMOKE)
-        return val
-
-    ######################### MQResistanceCalculation #########################
-    # Input:   raw_adc - raw value read from adc, which represents the voltage
-    # Output:  the calculated sensor resistance
-    # Remarks: The sensor and the load resistor forms a voltage divider. Given the voltage
-    #          across the load resistor and its resistance, the resistance of the sensor
-    #          could be derived.
-    ############################################################################
-    def MQResistanceCalculation(self, raw_adc):
-        return float(self.RL_VALUE * (1023.0 - raw_adc) / float(raw_adc))
-
     #########################  MQRead ##########################################
     # Input:   mq_pin - analog channel
     # Output:  Rs of the sensor
@@ -112,6 +94,24 @@ class MQ:
 
         return rs
 
+    def MQPercentage(self):
+        val = {}
+        read_val = self.MQRead(self.MQ_PIN)
+        val["GAS_LPG"] = self.MQGetGasPercentage(read_val/self.Ro, self.GAS_LPG)
+        val["CO"] = self.MQGetGasPercentage(read_val/self.Ro, self.GAS_CO)
+        val["SMOKE"] = self.MQGetGasPercentage(read_val/self.Ro, self.GAS_SMOKE)
+        return val
+
+    ######################### MQResistanceCalculation #########################
+    # Input:   raw_adc - raw value read from adc, which represents the voltage
+    # Output:  the calculated sensor resistance
+    # Remarks: The sensor and the load resistor forms a voltage divider. Given the voltage
+    #          across the load resistor and its resistance, the resistance of the sensor
+    #          could be derived.
+    ############################################################################
+    def MQResistanceCalculation(self, raw_adc):
+        return float(self.RL_VALUE * (1023.0 - raw_adc) / float(raw_adc))
+
     #########################  MQGetGasPercentage ##############################
     # Input:   rs_ro_ratio - Rs divided by Ro
     #          gas_id      - target gas type
@@ -121,11 +121,11 @@ class MQ:
     ############################################################################
     def MQGetGasPercentage(self, rs_ro_ratio: float, gas_id: int):
         if gas_id == self.GAS_LPG:
-            return self.MQGetPercentage(rs_ro_ratio, self.LPGCurve)
+            return self.MQPercentageCalc(rs_ro_ratio, self.LPGCurve)
         elif gas_id == self.GAS_CO:
-            return self.MQGetPercentage(rs_ro_ratio, self.COCurve)
+            return self.MQPercentageCalc(rs_ro_ratio, self.COCurve)
         elif gas_id == self.GAS_SMOKE:
-            return self.MQGetPercentage(rs_ro_ratio, self.SmokeCurve)
+            return self.MQPercentageCalc(rs_ro_ratio, self.SmokeCurve)
         return 0
 
     #########################  MQGetPercentage #################################
@@ -137,6 +137,5 @@ class MQ:
     #          logarithmic coordinate, power of 10 is used to convert the result to non-logarithmic
     #          value.
     ############################################################################
-    def MQGetPercentage(self, rs_ro_ratio: float, pcurve: list[float]):
+    def MQPercentageCalc(self, rs_ro_ratio: float, pcurve: list[float]):
         return math.pow(10, (((math.log(rs_ro_ratio) - pcurve[1]) / pcurve[2]) + pcurve[0]))
-

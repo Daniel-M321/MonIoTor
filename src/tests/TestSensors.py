@@ -1,9 +1,6 @@
 import unittest
 
 from unittest.mock import patch
-
-from gpiozero import BadPinFactory
-
 from src.mq2 import MQ
 from src.sensors import MySensors
 
@@ -23,14 +20,19 @@ class FakeDevice:
         self.is_active = False
         self.value = 0
         self.motion_detected = False
+        self.humidity = None
 
     def activity(self) -> None:
         self.is_active = True
         self.value = 0.9
         self.motion_detected = True
+        self.humidity = 50
 
     def read(self, pin: int) -> float:
         return 50
+
+    def measure(self) -> None:
+        print("measured")
 
 
 class TestSensors(unittest.TestCase):
@@ -52,6 +54,13 @@ class TestSensors(unittest.TestCase):
             context.exception.args,
             ('Issue with initiliasing a sensor: ', ("module 'board' has no attribute 'D27'",))
         )
+
+    @patch("src.sensors.MotionSensor", return_value=fakeDevice)
+    @patch("src.sensors.DigitalInputDevice", return_value=fakeDevice)
+    @patch("src.sensors.adafruit_dht.DHT11", return_value=fakeDevice)
+    @patch("src.sensors.board", return_value=fakeDevice)
+    def test_sensor_calibration(self, board_mock, dht_mock, device_mock, pir_mock):
+        MySensors(calibrate=True, calibration_times=2)
 
     # float switch tests #########
     def test_float_switch_flood(self):
@@ -91,10 +100,16 @@ class TestSensors(unittest.TestCase):
     def test_dht_ok(self):
         self.assertEqual(self.my_sensors.humidity_and_temp(), 1)
 
-    # def test_dht_failure(self):
-    #     #self.fakeDht.inactive()
-    #     with self.assertRaises(RuntimeError) as context:
-    #         self.my_sensors.humidity_and_temp(retries=1)
+    @patch("src.sensors.text_user", return_value=None)
+    def test_dht_high_temp(self, text_mock):
+        self.fakeDevice.temperature = 50
+        self.assertEqual(self.my_sensors.humidity_and_temp(), 1)
+        self.fakeDevice.temperature = 20
+
+    def test_dht_inactive(self):
+        self.fakeDevice.inactivity()
+        self.assertEqual(self.my_sensors.humidity_and_temp(retries=1), 0)
+        self.fakeDevice.activity()
 
     # adc tests ##################
     @patch("src.sensors.MCP3008", return_value=FakeDevice(0))
