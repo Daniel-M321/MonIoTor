@@ -3,8 +3,6 @@ venv/
 .coverage
 coverage.xml
 updatemystuff.sh
-git st
-
 
 *.env
 *.pyc
