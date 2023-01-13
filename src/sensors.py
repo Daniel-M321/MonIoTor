@@ -5,7 +5,7 @@ import adafruit_dht                                             # type: ignore
 import board                                                    # type: ignore
 
 # in main method sleep for seconds, but store in database in minutes
-from src.eventhandler import call_user, text_user
+from src.eventhandler import text_user
 
 
 class MySensors:
@@ -28,15 +28,6 @@ class MySensors:
             self.dht_calibration(retries=calibration_times)
             self.pir_calibration(retries=calibration_times)
 
-    # read SPI data from MCP3008 chip,8 possible adc's (0 through 7)
-    def read_adc(self, adcnum: int) -> float:
-        if (adcnum > 7) or (adcnum < 0):
-            return -1
-
-        sensor = MCP3008(channel=adcnum, clock_pin=18, mosi_pin=15, miso_pin=17, select_pin=14)
-
-        return sensor.value
-
     def check_float_switch(self) -> str:
         if self.float_switch.is_active:
             # call_user("Water has been detected in your house.")
@@ -44,19 +35,6 @@ class MySensors:
             return "There is flood"
         else:
             return "There is no flood"
-
-    def check_smoke_level(self, co_level: float) -> int:
-        smoke_trigger = ((co_level / 1024.) * 3.3)
-
-        if smoke_trigger > 1.5:
-            print("Gas leakage")
-            print("Current Gas AD value = " + str("%.2f" % ((co_level / 1024.) * 3.3)) + " V")
-            call_user("Abnormal smoke levels detected. There may be a gas leak")
-            return 0
-
-        else:
-            print("Gas not leak: " + str(co_level))
-            return 1
 
     def motion_sensor(self) -> int:
         print(self.pir.value)

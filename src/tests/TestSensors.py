@@ -1,6 +1,6 @@
 import unittest
 
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 from src.mq2 import MQ
 from src.sensors import MySensors
 
@@ -15,6 +15,7 @@ class FakeDevice:
         self.humidity = 50
         self.temperature = 20
         self.D27 = 4
+        self.voltage = 2
 
     def inactivity(self) -> None:
         self.is_active = False
@@ -72,19 +73,12 @@ class TestSensors(unittest.TestCase):
         self.fakeDevice.activity()
 
     # smoke level tests #########
-    def test_smoke_level_ok(self):
-        self.assertEqual(self.my_sensors.check_smoke_level(100), 1)
-
-    @patch("src.sensors.call_user", return_value=None)
-    def test_smoke_level_bad(self, call_mock):
-        self.assertEqual(self.my_sensors.check_smoke_level(500), 0)
-
     @patch("src.mq2.MCP3008", return_value=fakeDevice)
     def test_mq(self, mcp_mock):
         mq = MQ(READ_SAMPLE_INTERVAL=5, CALIBRATION_SAMPLE_INTERVAL=5)
         self.assertEqual(
             mq.MQPercentage(),
-            {'CO': 0.004963269307602389, 'GAS_LPG': 0.007659007247994245, 'SMOKE': 0.02043459613031669}
+            {'CO': 0.004963269307602358, 'GAS_LPG': 0.0076590072479942135, 'SMOKE': 0.020434596130316608}
         )
 
     # motion sensor tests ########
@@ -110,11 +104,3 @@ class TestSensors(unittest.TestCase):
         self.fakeDevice.inactivity()
         self.assertEqual(self.my_sensors.humidity_and_temp(retries=1), 0)
         self.fakeDevice.activity()
-
-    # adc tests ##################
-    @patch("src.sensors.MCP3008", return_value=FakeDevice(0))
-    def test_adc(self, adc_mock):
-        self.assertEqual(self.my_sensors.read_adc(0), 0.9)
-
-    def test_adc_incorrect_pin(self):
-        self.assertEqual(self.my_sensors.read_adc(9), -1)

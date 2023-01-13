@@ -32,7 +32,7 @@ class MQ:
     ):
         self.Ro = Ro
         self.MQ_PIN = analogPin
-        self.adc = MCP3008()
+        self.adc = MCP3008(channel=self.MQ_PIN, clock_pin=18, mosi_pin=15, miso_pin=17, select_pin=14)
         self.READ_SAMPLE_INTERVAL = READ_SAMPLE_INTERVAL
         self.CALIBRATION_SAMPLE_INTERVAL = CALIBRATION_SAMPLE_INTERVAL
 
@@ -50,7 +50,7 @@ class MQ:
         # data format:[ x, y, slope]; point1: (lg200, 0.53), point2: (lg10000,  -0.22)
 
         print("Calibrating MQ-2...")
-        self.Ro = self.MQCalibration(self.MQ_PIN)
+        self.Ro = self.MQCalibration()
         print("MQ-2 Calibration is done...\n")
         print("Ro=%f kohm" % self.Ro)
 
@@ -62,10 +62,10 @@ class MQ:
     #          and then divides it with RO_CLEAN_AIR_FACTOR. RO_CLEAN_AIR_FACTOR is about
     #          10, which differs slightly between different sensors.
     ############################################################################
-    def MQCalibration(self, mq_pin: int):
+    def MQCalibration(self):
         val = 0.0
         for i in range(self.CALIBARAION_SAMPLE_TIMES):  # take multiple samples
-            val += self.MQResistanceCalculation(self.adc.read(mq_pin))  # fixme check if correct method
+            val += self.MQResistanceCalculation(self.adc.voltage)
             time.sleep(self.CALIBRATION_SAMPLE_INTERVAL / 1000.0)
 
         val = val / self.CALIBARAION_SAMPLE_TIMES  # calculate the average value
@@ -83,11 +83,11 @@ class MQ:
     #          gas. The sample times and the time interval between samples could be configured
     #          by changing the definition of the macros.
     ############################################################################
-    def MQRead(self, mq_pin: int):
+    def MQRead(self):
         rs = 0.0
 
         for i in range(self.READ_SAMPLE_TIMES):
-            rs += self.MQResistanceCalculation(self.adc.read(mq_pin))
+            rs += self.MQResistanceCalculation(self.adc.voltage)
             time.sleep(self.READ_SAMPLE_INTERVAL / 1000.0)
 
         rs = rs / self.READ_SAMPLE_TIMES
@@ -96,7 +96,7 @@ class MQ:
 
     def MQPercentage(self):
         val = {}
-        read_val = self.MQRead(self.MQ_PIN)
+        read_val = self.MQRead()
         val["GAS_LPG"] = self.MQGetGasPercentage(read_val/self.Ro, self.GAS_LPG)
         val["CO"] = self.MQGetGasPercentage(read_val/self.Ro, self.GAS_CO)
         val["SMOKE"] = self.MQGetGasPercentage(read_val/self.Ro, self.GAS_SMOKE)
