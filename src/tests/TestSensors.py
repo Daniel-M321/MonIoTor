@@ -20,7 +20,7 @@ class FakeDevice:
         self.is_active = False
         self.value = 0
         self.motion_detected = False
-        self.humidity = None
+        self.humidity = 0
 
     def activity(self) -> None:
         self.is_active = True
@@ -98,7 +98,7 @@ class TestSensors(unittest.TestCase):
 
     # dht sensor tests ###########
     def test_dht_ok(self):
-        self.assertEqual(self.my_sensors.humidity_and_temp(), 1)
+        self.assertEqual(self.my_sensors.humidity_and_temp(retries=1), 1)
 
     @patch("src.sensors.text_user", return_value=None)
     def test_dht_high_temp(self, text_mock):
