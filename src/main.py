@@ -24,20 +24,20 @@ def main():
     print("Performing calibration on sensors, this may take a while...")
     my_sensors = MySensors(calibrate=True)
     mq = MQ()
+    time.sleep(5)
     while True:
-        #fs = my_sensors.check_float_switch()
-        time.sleep(1.5)
+        print("----------------------------------------")
+        my_sensors.check_float_sensor()
+        time.sleep(0.5)
         my_sensors.humidity_and_temp()
 
-        if my_sensors.alarm and my_sensors.motion_sensor() == 1:
-            print("motion detected")
+        motion = my_sensors.motion_sensor()
+        if my_sensors.alarm and motion == 1:
             my_sensors.motion_counter += 1
             if my_sensors.motion_counter == 3 and not my_sensors.user_called:
                 my_sensors.motion_counter = 0
                 call_user("Motion detected in your house")
                 my_sensors.user_called = True
-        elif my_sensors.motion_sensor() == 0:
-            print("no motion")
         if not my_sensors.alarm and my_sensors.user_called:
             my_sensors.user_called = False
         time.sleep(0.5)
@@ -48,6 +48,7 @@ def main():
         smoke_val = gas_percents["SMOKE"]
         print("LPG: {lpg} ppm, CO: {co} ppm, Smoke: {smoke} ppm".format(lpg=lpg_val, co=co_val, smoke=smoke_val))
         if lpg_val > 100:
+            #my_sensors.gas_counter += 1
             print("LPG values exceeded nominal values")
             call_user("High L.P.G. values detected")
         if co_val > 200:
