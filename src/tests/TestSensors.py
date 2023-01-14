@@ -22,33 +22,38 @@ class FakeDevice:
         self.value = 0
         self.motion_detected = False
         self.humidity = 0
+        self.voltage = 0
 
     def activity(self) -> None:
         self.is_active = True
         self.value = 0.9
         self.motion_detected = True
         self.humidity = 50
-
-    def read(self, pin: int) -> float:
-        return 50
+        self.voltage = 2
 
     def measure(self) -> None:
         print("measured")
+
+    def wait_for_motion(self, timeout: float) -> None:
+        pass
 
 
 class TestSensors(unittest.TestCase):
     fakeDevice = FakeDevice(4)
 
     @patch("src.sensors.MotionSensor", return_value=fakeDevice)
-    @patch("src.sensors.DigitalInputDevice", return_value=fakeDevice)
+    @patch("src.sensors.MCP3008", return_value=fakeDevice)
     @patch("src.sensors.adafruit_dht.DHT11", return_value=fakeDevice)
     @patch("src.sensors.board", return_value=fakeDevice)
     def setUp(self, board_mock, dht_mock, device_mock, pir_mock):
         self.my_sensors = MySensors()
 
+    # @patch("src.sensors.adafruit_dht.DHT11", return_value=fakeDevice)
+    # @patch("src.sensors.board", return_value=testingg())
     # @patch("src.sensors.MotionSensor", return_value=fakeDevice)
-    # @patch("src.sensors.DigitalInputDevice", return_value=fakeDevice)
-    # def test_sensor_error(self, dht_mock):
+    # @patch("src.sensors.MCP3008", return_value=fakeDevice)
+    # def test_sensor_error(self, adc_mock, pir_mock, board_mock, dht_mock):
+    #     MySensors()
     #     with self.assertRaises(RuntimeError) as context:
     #         MySensors()
     #     self.assertEqual(
@@ -57,19 +62,20 @@ class TestSensors(unittest.TestCase):
     #     )
 
     @patch("src.sensors.MotionSensor", return_value=fakeDevice)
-    @patch("src.sensors.DigitalInputDevice", return_value=fakeDevice)
+    @patch("src.sensors.MCP3008", return_value=fakeDevice)
     @patch("src.sensors.adafruit_dht.DHT11", return_value=fakeDevice)
     @patch("src.sensors.board", return_value=fakeDevice)
     def test_sensor_calibration(self, board_mock, dht_mock, device_mock, pir_mock):
         MySensors(calibrate=True, calibration_times=2)
 
     # float switch tests #########
-    def test_float_switch_flood(self):
-        self.assertEqual(self.my_sensors.check_float_switch(), "There is flood")
+    @patch("src.sensors.call_user", return_value=None)
+    def test_float_switch_flood(self, call_mock):
+        self.assertEqual(self.my_sensors.check_float_sensor(), 1)
 
     def test_float_switch_noflood(self):
         self.fakeDevice.inactivity()
-        self.assertEqual(self.my_sensors.check_float_switch(), "There is no flood")
+        self.assertEqual(self.my_sensors.check_float_sensor(), 0)
         self.fakeDevice.activity()
 
     # smoke level tests #########
