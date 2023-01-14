@@ -22,8 +22,8 @@ def main():
             proc.kill()
 
     print("Performing calibration on sensors, this may take a while...")
-    my_sensors = MySensors(calibrate=True, calibration_times=3)
-    mq = MQ(CALIBRATION_SAMPLE_INTERVAL=50)
+    my_sensors = MySensors(calibrate=True)
+    mq = MQ()
     time.sleep(5)
     while True:
         print("----------------------------------------")
