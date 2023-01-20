@@ -58,7 +58,7 @@ class MySensors:
 
                 if humid:
                     print('Temp: {0:0.1f} C  \tHumidity: {1:0.1f} %'.format(temp, humid))
-                    if temp > 40:
+                    if temp > 35:
                         print("abnormal temperature detected in your home: " + str(temp) + " C")
                         text_user("abnormal temperature detected in your home: "+str(temp) + " C")
             except RuntimeError as e:
