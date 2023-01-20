@@ -24,7 +24,7 @@ def main():
     print("Performing calibration on sensors, this may take a while...")
     my_sensors = MySensors(calibrate=True)
     mq = MQ()
-    time.sleep(5)
+    time.sleep(2)
     while True:
         print("----------------------------------------")
         my_sensors.check_float_sensor()
@@ -48,15 +48,24 @@ def main():
         smoke_val = gas_percents["SMOKE"]
         print("LPG: {lpg} ppm, CO: {co} ppm, Smoke: {smoke} ppm".format(lpg=lpg_val, co=co_val, smoke=smoke_val))
         if lpg_val > 100:
-            #my_sensors.gas_counter += 1
+            # my_sensors.high_gas = True
             print("LPG values exceeded nominal values")
             call_user("High L.P.G. values detected")
         if co_val > 200:
+            # my_sensors.high_gas = True
             print("CO values exceeded nominal values")
             call_user("High Carbon dioxide values detected")
         if smoke_val > 400:
+            # my_sensors.high_gas = True
             print("smoke level exceeded nominal values")
             call_user("High smoke values detected")
+        if my_sensors.high_gas:
+            my_sensors.high_gas = False
+            my_sensors.gas_counter += 1
+            if my_sensors.gas_counter == 6000:  # todo find specific values for a certain time
+                call_user("high Gas levels detected for a long period")
+        else:
+            my_sensors.gas_counter = 0
         time.sleep(5)
 
 

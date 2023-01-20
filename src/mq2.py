@@ -78,8 +78,8 @@ class MQ:
     #########################  MQRead ##########################################
     # Input:   mq_pin - analog channel
     # Output:  Rs of the sensor
-    # Remarks: This function use MQResistanceCalculation to caculate the sensor resistenc (Rs).
-    #          The Rs changes as the sensor is in the different consentration of the target
+    # Remarks: This function use MQResistanceCalculation to calculate the sensor resistence (Rs).
+    #          The Rs changes as the sensor is in the different concentration of the target
     #          gas. The sample times and the time interval between samples could be configured
     #          by changing the definition of the macros.
     ############################################################################
