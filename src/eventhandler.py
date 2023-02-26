@@ -13,7 +13,7 @@ def text_user(sensor: str) -> None:
     message = client.messages.create(
         messaging_service_sid=messaging_service_sid,
         body=sensor,
-        to='+353870934553'  # Todo take user input and save
+        to=os.environ["MY_NUMBER"]  # TODO get from db and save
     )
 
 
