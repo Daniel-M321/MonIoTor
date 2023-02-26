@@ -12,17 +12,21 @@ class MySensors:
     motion_counter: int
     alarm: bool
     user_called: bool
+    high_gas: bool
+    gas_counter: int
 
     def __init__(self, calibrate: bool = False, calibration_times: int = 30):
         try:
             self.float_sensor = MCP3008(channel=1, clock_pin=18, mosi_pin=15, miso_pin=17, select_pin=14)
-            self.pir = MotionSensor(4, queue_len=10, sample_rate=20, threshold=0.7)
+            self.pir = MotionSensor(4, queue_len=10, sample_rate=20, threshold=0.5)
             self.dht_sensor = adafruit_dht.DHT11(board.D27, use_pulseio=False)
         except Exception as e:
             raise RuntimeError("Issue with initiliasing a sensor: ", e.args)
         self.motion_counter = 0
         self.alarm = False
         self.user_called = False
+        self.high_gas = False
+        self.gas_counter = 0
 
         if calibrate:
             self.dht_calibration(retries=calibration_times)
