@@ -98,15 +98,15 @@ class TestSensors(unittest.TestCase):
 
     # dht sensor tests ###########
     def test_dht_ok(self):
-        self.assertEqual(self.my_sensors.humidity_and_temp(retries=1), 1)
+        self.assertEqual(self.my_sensors.humidity_and_temp(retries=1), (50, 20))
 
     @patch("src.sensors.text_user", return_value=None)
     def test_dht_high_temp(self, text_mock):
         self.fakeDevice.temperature = 50
-        self.assertEqual(self.my_sensors.humidity_and_temp(), 1)
+        self.assertEqual(self.my_sensors.humidity_and_temp(), (50, 50))
         self.fakeDevice.temperature = 20
 
     def test_dht_inactive(self):
         self.fakeDevice.inactivity()
-        self.assertEqual(self.my_sensors.humidity_and_temp(retries=1), 0)
+        self.assertEqual(self.my_sensors.humidity_and_temp(retries=1), (0, 0))
         self.fakeDevice.activity()

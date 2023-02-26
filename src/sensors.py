@@ -51,8 +51,9 @@ class MySensors:
             print(str(self.pir.value) + ": No or little motion detected")
             return 0
 
-    def humidity_and_temp(self, retries=15) -> float:
+    def humidity_and_temp(self, retries=15) -> tuple[float, float]:
         humid = None
+        temp = None  ## todo check for errors
         error = "DHT failure: Unexpected error, humidity & temperature have no values, check sensor"
 
         while retries >= 1 and not humid:
@@ -62,7 +63,7 @@ class MySensors:
 
                 if humid:
                     print('Temp: {0:0.1f} C  \tHumidity: {1:0.1f} %'.format(temp, humid))
-                    if temp > 40:
+                    if temp > 35:
                         print("abnormal temperature detected in your home: " + str(temp) + " C")
                         text_user("abnormal temperature detected in your home: "+str(temp) + " C")
             except RuntimeError as e:
@@ -72,9 +73,9 @@ class MySensors:
 
         if not humid:
             print(error)
-            return 0
+            return 0, 0
 
-        return 1
+        return humid, temp
 
     def pir_calibration(self, retries: int = 30) -> None:
         print("Calibrating PIR motion sensor...")
