@@ -3,6 +3,7 @@ from datetime import datetime
 from sensors import MySensors       # type: ignore
 from src.influx import MyDatabase   # type: ignore
 from src.mq2 import MQ              # type: ignore
+from dotenv import load_dotenv
 
 import psutil
 
@@ -18,6 +19,7 @@ def create_line_protocol(sensor: str, reading: str, value):
 
 # main loop
 def main():
+    load_dotenv()
     for proc in psutil.process_iter():
         if proc.name() == 'libgpiod_pulsein' or proc.name() == 'libgpiod_pulsei':
             proc.kill()
@@ -70,7 +72,7 @@ def main():
         else:
             my_sensors.gas_counter = 0
 
-        if database_counter == 300:
+        if database_counter == 43:  ## 43 /= 5 minutes
             if humid != 0:
                 myDB.write_db("Temperature", ["tag0", "Kitchen"], "temperature", temp)
                 myDB.write_db("Humidity", ["tag0", "Kitchen"], "humidity", humid)
@@ -79,6 +81,7 @@ def main():
             myDB.write_db("LPG", ["tag0", "Kitchen"], "lpg", lpg_val)
             myDB.write_db("Smoke", ["tag0", "Kitchen"], "smoke", smoke_val)
 
+            print("database record sent...")
             database_counter = 0
 
         time.sleep(5)

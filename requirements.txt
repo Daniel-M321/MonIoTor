@@ -2,6 +2,7 @@ gpiozero==1.6.2
 twilio==7.16.0
 python-dotenv==0.21.0
 adafruit-circuitpython-dht==3.7.8
+influxdb_client==1.36.1
 
 psutil~=5.9.4
 types-psutil==5.9.5.5
