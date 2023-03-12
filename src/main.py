@@ -55,20 +55,21 @@ def main():
         co_val = gas_percents["CO"]
         smoke_val = gas_percents["SMOKE"]
         print("LPG: {lpg} ppm, CO: {co} ppm, Smoke: {smoke} ppm".format(lpg=lpg_val, co=co_val, smoke=smoke_val))
-        if lpg_val > 100:
-            # my_sensors.high_gas = True
+        call = ""
+        if lpg_val > 25:
+            my_sensors.high_gas = True
             print("LPG values exceeded nominal values")
-            event_handler.call_user("High L.P.G. values detected")
-        if co_val > 25:
+            call += "- High L.P.G. values detected "
+        if co_val > 20:
             print("CO values exceeded nominal values")
-            event_handler.call_user("High Carbon dioxide values detected")
-        if smoke_val > 200:
+            call += "- High Carbon dioxide values detected "
+        if smoke_val > 100:
             print("smoke level exceeded nominal values")
-            event_handler.call_user("High smoke values detected")
+            call += "- High smoke values detected"
         if my_sensors.high_gas:
             my_sensors.high_gas = False
             my_sensors.gas_counter += 1
-            if my_sensors.gas_counter == 6000:  # todo find specific values for a certain time
+            if my_sensors.gas_counter == 500:  # roughly 1 hour, since 43 = 5mins
                 event_handler.call_user("high Gas levels detected for a long period")
         else:
             my_sensors.gas_counter = 0
