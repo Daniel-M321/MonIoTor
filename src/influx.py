@@ -36,18 +36,21 @@ class MyDatabase:
         return 1
 
     def query_db(self, measurement, location, field, period="2y") -> list[str]:
-        query = 'from(bucket:"{0}")\
-        |> range(start: -{1})\
-        |> filter(fn:(r) => r._measurement == "{2}")\
-        |> filter(fn:(r) => r.location == "{3}")\
-        |> filter(fn:(r) => r._field == "{4}")'.format(self.bucket, period, measurement, location, field)
-
-        result = self.query_api.query(org=self.org, query=query)
-
         results = []
-        for table in result:
-            for record in table.records:
-                results.append(record.get_value())
+        try:
+            query = 'from(bucket:"{0}")\
+            |> range(start: -{1})\
+            |> filter(fn:(r) => r._measurement == "{2}")\
+            |> filter(fn:(r) => r.location == "{3}")\
+            |> filter(fn:(r) => r._field == "{4}")'.format(self.bucket, period, measurement, location, field)
+
+            result = self.query_api.query(org=self.org, query=query)
+
+            for table in result:
+                for record in table.records:
+                    results.append(record.get_value())
+        except Exception as e:
+            print(e)
 
         return results
 
