@@ -75,7 +75,7 @@ class MySensors:
             print(error)
             return 0, 0
 
-        return humid, temp
+        return humid, temp      # type: ignore
 
     def pir_calibration(self, retries: int = 30) -> None:
         print("Calibrating PIR motion sensor...")

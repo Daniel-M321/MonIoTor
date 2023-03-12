@@ -38,8 +38,10 @@ class TestInflux(unittest.TestCase):
     fakeClient = FakeClient("test.com", "testToken", "testOrg")
 
     @patch("src.influx.influxdb_client.InfluxDBClient", return_value=fakeClient)
-    def setUp(self, db_mock):
+    @patch("src.eventhandler.os.environ", return_value={"test": "test"})
+    def setUp(self, token_mock, db_mock):
         self.my_db = MyDatabase()
 
+    #@patch("src.influx.os.environ", return_value={"test": "test"})
     def test_write_db(self):
         self.assertEqual(self.my_db.write_db("dht11", ["place", "kitchen"], "temperature", 20.8), 1)
