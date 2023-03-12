@@ -4,9 +4,6 @@ from gpiozero import DigitalInputDevice, MotionSensor, MCP3008, Button, LED  # t
 import adafruit_dht                                             # type: ignore
 import board                                                    # type: ignore
 
-# in main method sleep for seconds, but store in database in minutes
-from src.eventhandler import text_user, call_user
-
 
 class MySensors:
     motion_counter: int
@@ -15,7 +12,7 @@ class MySensors:
     high_gas: bool
     gas_counter: int
 
-    def __init__(self, calibrate: bool = False, calibration_times: int = 30):
+    def __init__(self, event_handler, calibrate: bool = False, calibration_times: int = 30):
         try:
             self.float_sensor = MCP3008(channel=1, clock_pin=18, mosi_pin=15, miso_pin=17, select_pin=14)
             self.pir = MotionSensor(4, queue_len=10, sample_rate=20, threshold=0.5)
@@ -24,6 +21,7 @@ class MySensors:
             self.led = LED(17)
         except Exception as e:
             raise RuntimeError("Issue with initiliasing a sensor: ", e.args)
+        self.event_handler = event_handler
         self.button.when_pressed = self.set_alarm   # todo check if needs to be constantly checked
         self.motion_counter = 0
         self.alarm = False
@@ -77,7 +75,7 @@ class MySensors:
                     print('Temp: {0:0.1f} C  \tHumidity: {1:0.1f} %'.format(temp, humid))
                     if temp > 35:
                         print("abnormal temperature detected in your home: " + str(temp) + " C")
-                        text_user("abnormal temperature detected in your home: "+str(temp) + " C")
+                        self.event_handler.text_user("abnormal temperature detected in your home: "+str(temp) + " C")
             except RuntimeError as e:
                 error = "DHT failure: " + str(e.args)
             time.sleep(1)

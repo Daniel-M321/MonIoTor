@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 import psutil
 
-from src.eventhandler import call_user
+from src.eventhandler import MyEventHandler
 
 
 # function to create line protocol needed to store in db
@@ -27,9 +27,10 @@ def main():
     database_counter = 0
 
     print("Performing calibration on sensors, this may take a while...")
-    my_sensors = MySensors(calibrate=True)
-    mq = MQ()
     myDB = MyDatabase()
+    event_handler = MyEventHandler(myDB)
+    my_sensors = MySensors(event_handler, calibrate=True)
+    mq = MQ()
     time.sleep(2)
     while True:
         database_counter += 1
@@ -43,7 +44,7 @@ def main():
             my_sensors.motion_counter += 1
             if my_sensors.motion_counter == 3 and not my_sensors.user_called:  # make sure user not already called
                 my_sensors.motion_counter = 0
-                call_user("Motion detected in your house")
+                event_handler.call_user("Motion detected in your house")
                 my_sensors.user_called = True
         if not my_sensors.alarm and my_sensors.user_called:  # removes potential previous tag
             my_sensors.user_called = False
@@ -57,22 +58,22 @@ def main():
         if lpg_val > 100:
             # my_sensors.high_gas = True
             print("LPG values exceeded nominal values")
-            call_user("High L.P.G. values detected")
+            event_handler.call_user("High L.P.G. values detected")
         if co_val > 25:
             print("CO values exceeded nominal values")
-            call_user("High Carbon dioxide values detected")
+            event_handler.call_user("High Carbon dioxide values detected")
         if smoke_val > 200:
             print("smoke level exceeded nominal values")
-            call_user("High smoke values detected")
+            event_handler.call_user("High smoke values detected")
         if my_sensors.high_gas:
             my_sensors.high_gas = False
             my_sensors.gas_counter += 1
             if my_sensors.gas_counter == 6000:  # todo find specific values for a certain time
-                call_user("high Gas levels detected for a long period")
+                event_handler.call_user("high Gas levels detected for a long period")
         else:
             my_sensors.gas_counter = 0
 
-        if database_counter == 43:  ## 43 /= 5 minutes
+        if database_counter == 43:  ## 43 =ish 5 minutes
             if humid != 0:
                 myDB.write_db("Temperature", ["tag0", "Kitchen"], "temperature", temp)
                 myDB.write_db("Humidity", ["tag0", "Kitchen"], "humidity", humid)

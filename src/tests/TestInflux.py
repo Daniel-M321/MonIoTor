@@ -15,13 +15,26 @@ class FakePoint:
     def field(self, key: Any, value: Any) -> None:
         pass
 
+    def get_value(self) -> str:
+        return "+353890440"
+
 
 class WriteApi:
+    records = [FakePoint()]
+
     def __init__(self):
         pass
 
     def write(self, bucket: str, org: str, record: FakePoint) -> None:
         pass
+
+
+class QueryApi:
+    def __init__(self):
+        pass
+
+    def query(self, org: str, query: str):
+        return [WriteApi()]
 
 
 class FakeClient:
@@ -32,6 +45,9 @@ class FakeClient:
 
     def write_api(self, write_options: object) -> WriteApi:
         return WriteApi()
+
+    def query_api(self) -> QueryApi:
+        return QueryApi()
 
 
 class TestInflux(unittest.TestCase):
@@ -44,3 +60,6 @@ class TestInflux(unittest.TestCase):
 
     def test_write_db(self):
         self.assertEqual(self.my_db.write_db("dht11", ["place", "kitchen"], "temperature", 20.8), 1)
+
+    def test_query_db(self):
+        self.assertEqual(self.my_db.query_db("Phone", "User", "number"), ["+353890440"])

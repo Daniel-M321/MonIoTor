@@ -1,7 +1,9 @@
 import unittest
 from unittest.mock import patch
 
-from src.eventhandler import text_user, call_user
+from src.eventhandler import MyEventHandler
+from src.influx import MyDatabase
+from src.tests.TestInflux import FakeClient
 
 
 class FakeMessages:
@@ -16,7 +18,7 @@ class FakeCalls:
         return sid
 
 
-class FakeClient:
+class FakeClientTwil:
     def __init__(self, username: str, password: str):
         self.username = username
         self.password = password
@@ -26,12 +28,14 @@ class FakeClient:
 
 class TestTwilio(unittest.TestCase):
 
+    @patch("src.influx.influxdb_client.InfluxDBClient", return_value=FakeClient("test", "test", "test"))
     @patch("src.eventhandler.os.environ", return_value={"test": "test"})
-    @patch("src.eventhandler.Client", return_value=FakeClient(username="user", password="pass"))
-    def test_text_user(self, client_mock, os_mock):
-        self.assertIsNone(text_user("Hi there, "))
+    @patch("src.eventhandler.Client", return_value=FakeClientTwil(username="user", password="pass"))
+    def setUp(self, handler_mock, token_mock, db_mock):
+        self.my_eh = MyEventHandler(MyDatabase())
 
-    @patch("src.eventhandler.os.environ", return_value={"test": "test"})
-    @patch("src.eventhandler.Client", return_value=FakeClient(username="user", password="pass"))
-    def test_call_user(self, client_mock, os_mock):
-        self.assertIsNone(call_user(""))
+    def test_text_user(self):
+        self.assertIsNone(self.my_eh.text_user("Hi there, "))
+
+    def test_call_user(self):
+        self.assertIsNone(self.my_eh.call_user(""))
