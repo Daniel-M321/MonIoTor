@@ -3,6 +3,8 @@ import unittest
 from unittest.mock import patch
 from src.mq2 import MQ
 from src.sensors import MySensors
+from gpiozero.pins.mock import MockFactory
+from gpiozero import Device
 
 
 class FakeDevice:
@@ -37,6 +39,12 @@ class FakeDevice:
     def wait_for_motion(self, timeout: float) -> None:
         pass
 
+    def on(self):
+        self.is_active = True
+
+    def off(self):
+        self.is_active = False
+
 
 class TestSensors(unittest.TestCase):
     fakeDevice = FakeDevice(4)
@@ -45,8 +53,22 @@ class TestSensors(unittest.TestCase):
     @patch("src.sensors.MCP3008", return_value=fakeDevice)
     @patch("src.sensors.adafruit_dht.DHT11", return_value=fakeDevice)
     @patch("src.sensors.board", return_value=fakeDevice)
-    def setUp(self, board_mock, dht_mock, device_mock, pir_mock):
+    @patch("src.sensors.LED", return_value=fakeDevice)
+    @patch("src.sensors.Button", return_value=fakeDevice)
+    def setUp(self, button_mock, led_mock, board_mock, dht_mock, device_mock, pir_mock):
         self.my_sensors = MySensors()
+
+    def test_setting_alarm(self):
+        self.assertFalse(self.my_sensors.alarm)
+        self.assertFalse(self.my_sensors.led.is_active)
+
+        self.my_sensors.set_alarm()
+        self.assertTrue(self.my_sensors.alarm)
+        self.assertTrue(self.my_sensors.led.is_active)
+
+        self.my_sensors.set_alarm()
+        self.assertFalse(self.my_sensors.alarm)
+        self.assertFalse(self.my_sensors.led.is_active)
 
     # @patch("src.sensors.adafruit_dht.DHT11", return_value=fakeDevice)
     # @patch("src.sensors.board", return_value=testingg())

@@ -24,7 +24,7 @@ class MySensors:
             self.led = LED(17)
         except Exception as e:
             raise RuntimeError("Issue with initiliasing a sensor: ", e.args)
-        self.button.when_pressed = self.set_alarm
+        self.button.when_pressed = self.set_alarm   # todo check if needs to be constantly checked
         self.motion_counter = 0
         self.alarm = False
         self.led.off()
@@ -56,7 +56,7 @@ class MySensors:
 
     def motion_sensor(self) -> int:
         self.pir.wait_for_motion(timeout=3)  # https://static.raspberrypi.org/files/education/posters/GPIO_Zero_Cheatsheet.pdf
-        if self.pir.motion_detected:
+        if self.pir.motion_detected:    # todo maybe replace with when_motion?
             print(str(self.pir.value)+": Motion detected")
             return 1
         else:
