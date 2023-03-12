@@ -42,6 +42,5 @@ class TestInflux(unittest.TestCase):
     def setUp(self, token_mock, db_mock):
         self.my_db = MyDatabase()
 
-    #@patch("src.influx.os.environ", return_value={"test": "test"})
     def test_write_db(self):
         self.assertEqual(self.my_db.write_db("dht11", ["place", "kitchen"], "temperature", 20.8), 1)

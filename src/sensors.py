@@ -1,6 +1,6 @@
 import time
 
-from gpiozero import DigitalInputDevice, MotionSensor, MCP3008  # type: ignore
+from gpiozero import DigitalInputDevice, MotionSensor, MCP3008, Button, LED  # type: ignore
 import adafruit_dht                                             # type: ignore
 import board                                                    # type: ignore
 
@@ -20,10 +20,14 @@ class MySensors:
             self.float_sensor = MCP3008(channel=1, clock_pin=18, mosi_pin=15, miso_pin=17, select_pin=14)
             self.pir = MotionSensor(4, queue_len=10, sample_rate=20, threshold=0.5)
             self.dht_sensor = adafruit_dht.DHT11(board.D27, use_pulseio=False)
+            self.button = Button(2)  # todo get button & LED pin
+            self.led = LED(17)
         except Exception as e:
             raise RuntimeError("Issue with initiliasing a sensor: ", e.args)
+        self.button.when_pressed = self.set_alarm
         self.motion_counter = 0
         self.alarm = False
+        self.led.off()
         self.user_called = False
         self.high_gas = False
         self.gas_counter = 0
@@ -31,6 +35,14 @@ class MySensors:
         if calibrate:
             self.dht_calibration(retries=calibration_times)
             self.pir_calibration(retries=calibration_times)
+
+    def set_alarm(self):
+        if self.alarm:
+            self.alarm = False
+            self.led.off()
+        else:
+            self.alarm = True
+            self.led.on()
 
     def check_float_sensor(self) -> int:
         if self.float_sensor.voltage >= 0.2:
