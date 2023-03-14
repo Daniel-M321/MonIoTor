@@ -1,32 +1,45 @@
 import os
 from twilio.rest import Client          # type: ignore
 
-
-def text_user(sensor: str) -> None:
-    account_sid = os.environ['TWILIO_ACCOUNT_SID']
-    auth_token = os.environ['TWILIO_AUTH_TOKEN']
-    messaging_service_sid = os.environ['MESSAGING_SERVICE_SID']
-    client = Client(account_sid, auth_token)
-
-    sensor += "Join Earth's mightiest heroes. Like Kevin Bacon."
-
-    message = client.messages.create(
-        messaging_service_sid=messaging_service_sid,
-        body=sensor,
-        to=os.environ["MY_NUMBER"]  # TODO get from db and save
-    )
+from src.influx import MyDatabase
 
 
-def call_user(message: str) -> None:
-    account_sid = os.environ['TWILIO_ACCOUNT_SID']
-    auth_token = os.environ['TWILIO_AUTH_TOKEN']
-    calling_number = os.environ['TWILIO_NUMBER']
-    client = Client(account_sid, auth_token)
+class MyEventHandler:
 
-    message = '<Response><Say voice="alice">'+message+'</Say></Response>'
+    def __init__(self, db: MyDatabase):
+        self.influxdb = db
+        self.number = os.environ["MY_NUMBER"]
 
-    call = client.calls.create(
-        twiml=message,
-        to='+353870934553',
-        from_=calling_number
-    )
+        account_sid = os.environ['TWILIO_ACCOUNT_SID']
+        auth_token = os.environ['TWILIO_AUTH_TOKEN']
+        self.messaging_service_sid = os.environ['MESSAGING_SERVICE_SID']
+        self.client = Client(account_sid, auth_token)
+        self.calling_number = os.environ['TWILIO_NUMBER']
+
+    def text_user(self, sensor: str) -> None:
+        number_query = self.influxdb.query_db("Phone", "User", "number")
+
+        if len(number_query) > 0:
+            self.number = number_query.pop()
+
+        sensor += "Join Earth's mightiest heroes. Like Kevin Bacon."
+
+        message = self.client.messages.create(
+            messaging_service_sid=self.messaging_service_sid,
+            body=sensor,
+            to=self.number
+        )
+
+    def call_user(self, message: str) -> None:
+        number_query = self.influxdb.query_db("Phone", "User", "number")
+
+        if len(number_query) > 0:
+            self.number = number_query.pop()
+
+        message = '<Response><Say voice="alice">'+message+'</Say></Response>'
+
+        call = self.client.calls.create(
+            twiml=message,
+            to=self.number,
+            from_=self.calling_number
+        )

@@ -37,6 +37,18 @@ class FakeDevice:
     def wait_for_motion(self, timeout: float) -> None:
         pass
 
+    def on(self):
+        self.is_active = True
+
+    def off(self):
+        self.is_active = False
+
+    def text_user(self, message) -> None:
+        pass
+
+    def call_user(self, message) -> None:
+        pass
+
 
 class TestSensors(unittest.TestCase):
     fakeDevice = FakeDevice(4)
@@ -45,8 +57,22 @@ class TestSensors(unittest.TestCase):
     @patch("src.sensors.MCP3008", return_value=fakeDevice)
     @patch("src.sensors.adafruit_dht.DHT11", return_value=fakeDevice)
     @patch("src.sensors.board", return_value=fakeDevice)
-    def setUp(self, board_mock, dht_mock, device_mock, pir_mock):
-        self.my_sensors = MySensors()
+    @patch("src.sensors.LED", return_value=fakeDevice)
+    @patch("src.sensors.Button", return_value=fakeDevice)
+    def setUp(self, button_mock, led_mock, board_mock, dht_mock, device_mock, pir_mock):
+        self.my_sensors = MySensors(self.fakeDevice)
+
+    def test_setting_alarm(self):
+        self.assertFalse(self.my_sensors.alarm)
+        self.assertFalse(self.my_sensors.led.is_active)
+
+        self.my_sensors.set_alarm()
+        self.assertTrue(self.my_sensors.alarm)
+        self.assertTrue(self.my_sensors.led.is_active)
+
+        self.my_sensors.set_alarm()
+        self.assertFalse(self.my_sensors.alarm)
+        self.assertFalse(self.my_sensors.led.is_active)
 
     # @patch("src.sensors.adafruit_dht.DHT11", return_value=fakeDevice)
     # @patch("src.sensors.board", return_value=testingg())
@@ -65,12 +91,13 @@ class TestSensors(unittest.TestCase):
     @patch("src.sensors.MCP3008", return_value=fakeDevice)
     @patch("src.sensors.adafruit_dht.DHT11", return_value=fakeDevice)
     @patch("src.sensors.board", return_value=fakeDevice)
-    def test_sensor_calibration(self, board_mock, dht_mock, device_mock, pir_mock):
-        MySensors(calibrate=True, calibration_times=2)
+    @patch("src.sensors.LED", return_value=fakeDevice)
+    @patch("src.sensors.Button", return_value=fakeDevice)
+    def test_sensor_calibration(self, button_mock, led_mock, board_mock, dht_mock, device_mock, pir_mock):
+        MySensors(self.fakeDevice, calibrate=True, calibration_times=2)
 
     # float switch tests #########
-    @patch("src.sensors.call_user", return_value=None)
-    def test_float_switch_flood(self, call_mock):
+    def test_float_switch_flood(self):
         self.assertEqual(self.my_sensors.check_float_sensor(), 1)
 
     def test_float_switch_noflood(self):
@@ -100,8 +127,7 @@ class TestSensors(unittest.TestCase):
     def test_dht_ok(self):
         self.assertEqual(self.my_sensors.humidity_and_temp(retries=1), (50, 20))
 
-    @patch("src.sensors.text_user", return_value=None)
-    def test_dht_high_temp(self, text_mock):
+    def test_dht_high_temp(self):
         self.fakeDevice.temperature = 50
         self.assertEqual(self.my_sensors.humidity_and_temp(), (50, 50))
         self.fakeDevice.temperature = 20

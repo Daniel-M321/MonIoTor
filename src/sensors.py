@@ -1,11 +1,8 @@
 import time
 
-from gpiozero import DigitalInputDevice, MotionSensor, MCP3008  # type: ignore
+from gpiozero import DigitalInputDevice, MotionSensor, MCP3008, Button, LED  # type: ignore
 import adafruit_dht                                             # type: ignore
 import board                                                    # type: ignore
-
-# in main method sleep for seconds, but store in database in minutes
-from src.eventhandler import text_user, call_user
 
 
 class MySensors:
@@ -15,15 +12,20 @@ class MySensors:
     high_gas: bool
     gas_counter: int
 
-    def __init__(self, calibrate: bool = False, calibration_times: int = 30):
+    def __init__(self, event_handler, calibrate: bool = False, calibration_times: int = 30):
         try:
             self.float_sensor = MCP3008(channel=1, clock_pin=18, mosi_pin=15, miso_pin=17, select_pin=14)
             self.pir = MotionSensor(4, queue_len=10, sample_rate=20, threshold=0.5)
             self.dht_sensor = adafruit_dht.DHT11(board.D27, use_pulseio=False)
+            self.button = Button(2)  # todo get button & LED pin
+            self.led = LED(17)
         except Exception as e:
             raise RuntimeError("Issue with initiliasing a sensor: ", e.args)
+        self.event_handler = event_handler
+        self.button.when_pressed = self.set_alarm   # todo check if needs to be constantly checked
         self.motion_counter = 0
         self.alarm = False
+        self.led.off()
         self.user_called = False
         self.high_gas = False
         self.gas_counter = 0
@@ -31,6 +33,14 @@ class MySensors:
         if calibrate:
             self.dht_calibration(retries=calibration_times)
             self.pir_calibration(retries=calibration_times)
+
+    def set_alarm(self):
+        if self.alarm:
+            self.alarm = False
+            self.led.off()
+        else:
+            self.alarm = True
+            self.led.on()
 
     def check_float_sensor(self) -> int:
         if self.float_sensor.voltage >= 0.2:
@@ -44,7 +54,7 @@ class MySensors:
 
     def motion_sensor(self) -> int:
         self.pir.wait_for_motion(timeout=3)  # https://static.raspberrypi.org/files/education/posters/GPIO_Zero_Cheatsheet.pdf
-        if self.pir.motion_detected:
+        if self.pir.motion_detected:    # todo maybe replace with when_motion?
             print(str(self.pir.value)+": Motion detected")
             return 1
         else:
@@ -65,7 +75,7 @@ class MySensors:
                     print('Temp: {0:0.1f} C  \tHumidity: {1:0.1f} %'.format(temp, humid))
                     if temp > 35:
                         print("abnormal temperature detected in your home: " + str(temp) + " C")
-                        text_user("abnormal temperature detected in your home: "+str(temp) + " C")
+                        self.event_handler.text_user("abnormal temperature detected in your home: "+str(temp) + " C")
             except RuntimeError as e:
                 error = "DHT failure: " + str(e.args)
             time.sleep(1)
@@ -75,7 +85,7 @@ class MySensors:
             print(error)
             return 0, 0
 
-        return humid, temp
+        return humid, temp      # type: ignore
 
     def pir_calibration(self, retries: int = 30) -> None:
         print("Calibrating PIR motion sensor...")
