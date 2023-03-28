@@ -17,12 +17,11 @@ class MySensors:
             self.float_sensor = MCP3008(channel=1, clock_pin=18, mosi_pin=15, miso_pin=17, select_pin=14)
             self.pir = MotionSensor(4, queue_len=10, sample_rate=20, threshold=0.5)
             self.dht_sensor = adafruit_dht.DHT11(board.D27, use_pulseio=False)
-            self.button = Button(2)  # todo get button & LED pin
-            self.led = LED(17)
+            self.button = DigitalInputDevice(18)  # todo get button & LED pin
+            self.led = LED(22)
         except Exception as e:
             raise RuntimeError("Issue with initiliasing a sensor: ", e.args)
         self.event_handler = event_handler
-        self.button.when_pressed = self.set_alarm   # todo check if needs to be constantly checked
         self.motion_counter = 0
         self.alarm = False
         self.led.off()
@@ -34,13 +33,23 @@ class MySensors:
             self.dht_calibration(retries=calibration_times)
             self.pir_calibration(retries=calibration_times)
 
+    # def set_alarm(self):
+    #     if self.alarm:
+    #         self.alarm = False
+    #         self.led.off()
+    #     else:
+    #         self.alarm = True
+    #         self.led.on()
+
     def set_alarm(self):
-        if self.alarm:
-            self.alarm = False
-            self.led.off()
+        if self.button.is_active:
+            if not self.alarm:
+                self.alarm = True
+                self.led.on()
         else:
-            self.alarm = True
-            self.led.on()
+            if self.alarm:
+                self.alarm = False
+                self.led.off()
 
     def check_float_sensor(self) -> int:
         if self.float_sensor.voltage >= 0.2:
