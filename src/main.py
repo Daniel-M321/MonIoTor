@@ -35,7 +35,7 @@ def main():
     while True:
         database_counter += 1
         print("----------------------------------------")
-        my_sensors.set_alarm()
+        my_sensors.check_alarm()
         my_sensors.check_float_sensor()
         time.sleep(0.5)
         humid, temp = my_sensors.humidity_and_temp()
