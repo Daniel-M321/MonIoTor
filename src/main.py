@@ -1,13 +1,13 @@
 import time
 from datetime import datetime
 from sensors import MySensors       # type: ignore
-from src.influx import MyDatabase   # type: ignore
-from src.mq2 import MQ              # type: ignore
+from influx import MyDatabase   # type: ignore
+from mq2 import MQ              # type: ignore
 from dotenv import load_dotenv
 
 import psutil
 
-from src.eventhandler import MyEventHandler
+from eventhandler import MyEventHandler
 
 
 # function to create line protocol needed to store in db

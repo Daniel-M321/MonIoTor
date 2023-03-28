@@ -1,7 +1,7 @@
 import os
 from twilio.rest import Client          # type: ignore
 
-from src.influx import MyDatabase
+from influx import MyDatabase
 
 
 class MyEventHandler:
