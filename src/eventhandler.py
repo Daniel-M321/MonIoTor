@@ -22,8 +22,6 @@ class MyEventHandler:
         if len(number_query) > 0:
             self.number = number_query.pop()
 
-        sensor += "Join Earth's mightiest heroes. Like Kevin Bacon."
-
         message = self.client.messages.create(
             messaging_service_sid=self.messaging_service_sid,
             body=sensor,
