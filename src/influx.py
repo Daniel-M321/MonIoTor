@@ -20,12 +20,6 @@ class MyDatabase:
         self.write_api = self.client.write_api(write_options=SYNCHRONOUS)
         self.query_api = self.client.query_api()
 
-    # function to create line protocol needed to store in db
-    # def create_line_protocol(self, sensor: str, reading: str, value):
-    #     line: str = "{} {}={} {}"
-    #     timestamp = str(int(datetime.now().timestamp() * 1000))
-    #     return line.format(sensor, reading, value, timestamp)
-
     def write_db(self, sensor: str, tag: list[str], measurement: str, reading: float) -> int:
         try:
             point = influxdb_client.Point(sensor).tag(tag[0], tag[1]).field(measurement, reading)

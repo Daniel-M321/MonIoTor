@@ -35,20 +35,14 @@ def main():
     while True:
         database_counter += 1
         print("----------------------------------------")
+
         my_sensors.check_alarm()
-        my_sensors.check_float_sensor()
+        water = my_sensors.check_float_sensor()
+        if water == 1:
+            myDB.write_db("Water", ["tag0", "Basement"], "water", 1)
+
         time.sleep(0.5)
         humid, temp = my_sensors.humidity_and_temp()
-
-        motion = my_sensors.motion_sensor()
-        if my_sensors.alarm and motion == 1:  # motion counter and alarm variable
-            my_sensors.motion_counter += 1
-            if my_sensors.motion_counter == 3 and not my_sensors.user_called:  # make sure user not already called
-                my_sensors.motion_counter = 0
-                event_handler.call_user("Motion detected in your house")
-                my_sensors.user_called = True
-        if not my_sensors.alarm and my_sensors.user_called:  # removes potential previous tag
-            my_sensors.user_called = False
         time.sleep(0.5)
 
         gas_percents = mq.MQPercentage()

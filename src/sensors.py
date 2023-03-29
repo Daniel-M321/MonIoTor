@@ -28,6 +28,7 @@ class MySensors:
         self.user_called = False
         self.high_gas = False
         self.gas_counter = 0
+        self.pir.when_activated = self.motion_sensor
 
         if calibrate:
             self.dht_calibration(retries=calibration_times)
@@ -36,6 +37,7 @@ class MySensors:
     def check_alarm(self):
         if self.button.is_active:
             if not self.alarm:
+                self.user_called = False
                 self.alarm = True
                 self.led.on()
         else:
@@ -46,25 +48,27 @@ class MySensors:
     def check_float_sensor(self) -> int:
         if self.float_sensor.voltage >= 0.2:
             # call_user("Water has been detected in your house.") #uncomment later
-            # db (can be used on webapp)
             print(str(self.float_sensor.voltage)+": Water detected")
             return 1
         else:
             print(str(self.float_sensor.voltage)+": No water")
             return 0
 
-    def motion_sensor(self) -> int:
-        self.pir.wait_for_motion(timeout=3)  # https://static.raspberrypi.org/files/education/posters/GPIO_Zero_Cheatsheet.pdf
-        if self.pir.motion_detected:    # todo maybe replace with when_motion?
-            print(str(self.pir.value)+": Motion detected")
-            return 1
-        else:
-            print(str(self.pir.value) + ": No or little motion detected")
-            return 0
+    def motion_sensor(self) -> None:
+        print(str(self.pir.value)+": Motion detected")
+
+        if self.alarm:  # motion counter and alarm variable
+            self.motion_counter += 1
+            if self.motion_counter == 4 and not self.user_called:  # make sure user not already called
+                self.motion_counter = 0
+                self.event_handler.call_user("Motion detected in your house")
+                self.user_called = True
+
+        return None
 
     def humidity_and_temp(self, retries=15) -> tuple[float, float]:
         humid = None
-        temp = None  ## todo check for errors
+        temp = None
         error = "DHT failure: Unexpected error, humidity & temperature have no values, check sensor"
 
         while retries >= 1 and not humid:
@@ -77,7 +81,7 @@ class MySensors:
                     if temp > 30 or temp < 10:
                         print("abnormal temperature detected in your home: " + str(temp) + " C")
                         self.event_handler.text_user("abnormal temperature detected in your home: " + str(temp) + " C")
-                    if humid > 70 or humid < 20:
+                    if humid > 75 or humid < 20:
                         print("abnormal humidity detected in your home: " + str(humid) + "%")
                         self.event_handler.text_user("abnormal humidity detected in your home: " + str(humid) + "%")
             except RuntimeError as e:
