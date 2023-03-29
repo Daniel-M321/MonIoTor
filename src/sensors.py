@@ -45,8 +45,8 @@ class MySensors:
 
     def check_float_sensor(self) -> int:
         if self.float_sensor.voltage >= 0.2:
-            # call_user("Water has been detected in your house.")
-            # db
+            # call_user("Water has been detected in your house.") #uncomment later
+            # db (can be used on webapp)
             print(str(self.float_sensor.voltage)+": Water detected")
             return 1
         else:
@@ -74,9 +74,12 @@ class MySensors:
 
                 if humid:
                     print('Temp: {0:0.1f} C  \tHumidity: {1:0.1f} %'.format(temp, humid))
-                    if temp > 35:
+                    if temp > 30 or temp < 10:
                         print("abnormal temperature detected in your home: " + str(temp) + " C")
-                        self.event_handler.text_user("abnormal temperature detected in your home: "+str(temp) + " C")
+                        self.event_handler.text_user("abnormal temperature detected in your home: " + str(temp) + " C")
+                    if humid > 70 or humid < 20:
+                        print("abnormal humidity detected in your home: " + str(humid) + "%")
+                        self.event_handler.text_user("abnormal humidity detected in your home: " + str(humid) + "%")
             except RuntimeError as e:
                 error = "DHT failure: " + str(e.args)
             time.sleep(1)

@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 import psutil
 
-from eventhandler import MyEventHandler
+from eventhandler import MyEventHandler     # type: ignore
 
 
 # function to create line protocol needed to store in db
