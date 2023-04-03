@@ -56,9 +56,11 @@ def main():
             print("LPG values exceeded nominal values")
             call += "- High L.P.G. values detected "
         if co_val > 20:
+            my_sensors.high_gas = True
             print("CO values exceeded nominal values")
             call += "- High Carbon dioxide values detected "
         if smoke_val > 100:
+            my_sensors.high_gas = True
             print("smoke level exceeded nominal values")
             call += "- High smoke values detected"
         if my_sensors.high_gas:

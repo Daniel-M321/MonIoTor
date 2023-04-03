@@ -59,7 +59,7 @@ class MySensors:
 
         if self.alarm:  # motion counter and alarm variable
             self.motion_counter += 1
-            if self.motion_counter == 4 and not self.user_called:  # make sure user not already called
+            if self.motion_counter == 3 and not self.user_called:  # make sure user not already called
                 self.motion_counter = 0
                 self.event_handler.call_user("Motion detected in your house")
                 self.user_called = True
