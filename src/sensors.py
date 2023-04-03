@@ -29,6 +29,8 @@ class MySensors:
         self.high_gas = False
         self.gas_counter = 0
         self.pir.when_activated = self.motion_sensor
+        self.temp_counter = 0
+        self.humid_counter = 0
 
         if calibrate:
             self.dht_calibration(retries=calibration_times)
@@ -79,11 +81,20 @@ class MySensors:
                 if humid:
                     print('Temp: {0:0.1f} C  \tHumidity: {1:0.1f} %'.format(temp, humid))
                     if temp > 30 or temp < 10:
+                        self.temp_counter += 1
                         print("abnormal temperature detected in your home: " + str(temp) + " C")
-                        self.event_handler.text_user("abnormal temperature detected in your home: " + str(temp) + " C")
+                        if self.temp_counter == 5:
+                            self.event_handler.text_user("abnormal temperature detected in your home: "+str(temp)+" C")
+                    else:
+                        self.temp_counter = 0
+
                     if humid > 75 or humid < 20:
+                        self.humid_counter += 1
                         print("abnormal humidity detected in your home: " + str(humid) + "%")
-                        self.event_handler.text_user("abnormal humidity detected in your home: " + str(humid) + "%")
+                        if self.humid_counter == 5:
+                            self.event_handler.text_user("abnormal humidity detected in your home: " + str(humid) + "%")
+                    else:
+                        self.humid_counter = 0
             except RuntimeError as e:
                 error = "DHT failure: " + str(e.args)
             time.sleep(1)
