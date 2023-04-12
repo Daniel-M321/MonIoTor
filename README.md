@@ -1,5 +1,13 @@
 # MonIoTor
 
+This is the application code for my raspberry pi. This code contains the logic for connecting to my sensors and reading the data, eventhandlers that are activated on alarming data and the process of sending the sensor data to an influx database stored on AWS.
+
+## Tests
+Inside the updateMyStuff bat and sh file, the requirements are installed, the type checker is called on the program and lastly the unit tests are ran with a coverage report.
+
+## Main
+The main file consists of the loop that run throughs the sensors, eventhandlers and database writing. The calibration for the sensors can be switched out with the boolean before the loop. 
+
 ## Fixes
 
 - For testing outside the raspberry pi:<br>
