@@ -1,5 +1,4 @@
 import os
-from datetime import datetime
 import influxdb_client                                      # type: ignore
 from influxdb_client.client.write_api import SYNCHRONOUS    # type: ignore
 

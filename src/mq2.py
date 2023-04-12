@@ -8,7 +8,7 @@ from gpiozero import MCP3008            # type: ignore
 class MQ:
     ######################### Hardware Related Macros #########################
     MQ_PIN = 0  # analog input channel (MCP3008)
-    RL_VALUE = 1  # define the load resistance on the board, in kilo ohms
+    RL_VALUE = 10  # define the load resistance on the board, in kilo ohms
     RO_CLEAN_AIR_FACTOR = 9.83  # RO_CLEAR_AIR_FACTOR=(Sensor resistance in clean air)/RO,
     # which is derived from the chart in datasheet https://www.elecrow.com/download/MQ-2.pdf
 
@@ -73,7 +73,7 @@ class MQ:
         val = val / self.RO_CLEAN_AIR_FACTOR  # divided by RO_CLEAN_AIR_FACTOR yields the Ro
         # according to the chart in the datasheet
 
-        return val
+        return 10 #val
 
     #########################  MQRead ##########################################
     # Input:   mq_pin - analog channel
